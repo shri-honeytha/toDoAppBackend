@@ -69,16 +69,44 @@ const userSchema = new mongoose.Schema({
 const userModel = mongoose.model("User", userSchema);
 
 app.post("/users/register", async (req, res) => {
- 
 
-    const {name,email,password,role} = req.body;
-    const hashedPassword=await bcrypt.hash(password,10)
-    const user=await userModel.create({
-        name, email, password:hashedPassword,role
-    })
-    res.json(user)
-   
-} )
+    try {
+
+        const { name, email, password, role } = req.body;
+
+        const existingUser = await userModel.findOne({ email });
+
+        if(existingUser){
+            return res.json({
+                success:false,
+                message:"Email already exists"
+            });
+        }
+
+        const hashedPassword = await bcrypt.hash(password,10);
+
+        const user = await userModel.create({
+            name,
+            email,
+            password:hashedPassword,
+            role
+        });
+
+        res.json({
+            success:true,
+            message:"Registration Successful",
+            user
+        });
+
+    }
+    catch(err){
+        res.json({
+            success:false,
+            message:"Registration Failed"
+        });
+    }
+
+});
 
 app.post("/users/login", async (req, res) => {
   
